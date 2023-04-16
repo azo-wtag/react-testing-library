@@ -1,7 +1,14 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitFor,
+  waitForElementToBeRemoved,
+} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import SummaryForm from "../SummaryForm";
 
-test("Proceed buton status based on checkbox", () => {
+test("Proceed buton status based on checkbox", async () => {
+  const user = userEvent.setup();
   render(<SummaryForm />);
 
   const termsCondtionCheckBox = screen.getByRole("checkbox", {
@@ -14,9 +21,31 @@ test("Proceed buton status based on checkbox", () => {
   expect(termsCondtionCheckBox).not.toBeChecked();
   expect(proccedToPaymentButton).toBeDisabled();
 
-  fireEvent.click(termsCondtionCheckBox);
-  expect(proccedToPaymentButton).toBeEnabled();
+  user.click(termsCondtionCheckBox);
+  await waitFor(() => {
+    expect(proccedToPaymentButton).toBeEnabled();
+  });
 
-  fireEvent.click(termsCondtionCheckBox);
-  expect(proccedToPaymentButton).toBeDisabled();
+  user.click(termsCondtionCheckBox);
+  await waitFor(() => {
+    expect(proccedToPaymentButton).toBeDisabled();
+  });
+});
+
+test("Popover responds to hover", async () => {
+  const user = userEvent.setup();
+  render(<SummaryForm />);
+
+  const nullPopover = screen.queryByText(/just hover/i);
+  expect(nullPopover).not.toBeInTheDocument();
+
+  const termsAndConditions = screen.getByText(/terms and conditions/i);
+  user.hover(termsAndConditions);
+  await waitFor(() => {
+    screen.getByText(/terms and conditions/i);
+  });
+
+  await waitForElementToBeRemoved(() => {
+    screen.queryByText(/just hover/i);
+  });
 });
